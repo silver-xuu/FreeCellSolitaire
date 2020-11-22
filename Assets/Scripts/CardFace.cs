@@ -21,12 +21,17 @@ public class CardFace : MonoBehaviour
         solitaire = FindObjectOfType<Solitaire>();
         int index = deck.IndexOf(this.name);
         this.GetComponent<SpriteRenderer>().sprite = solitaire.cards[index];
+        // change the card to be selectable if it's the last in the list
         foreach (List<string> cascade in solitaire.cascades)
         {
             if (cascade.Last<string>() == this.name)
             {
                 selectable = true;
-                Debug.Log(this.name);
+                CardFace[] cardFaces= this.GetComponentsInParent<CardFace>();
+                foreach(CardFace cardFace in cardFaces)
+                {
+                    cardFace.selectable = true;
+                }
             }
         }
         names = this.name.Split(' ');
