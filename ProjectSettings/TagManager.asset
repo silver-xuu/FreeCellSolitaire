@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Free Cell
+  - Foundation
+  - Empty Cascade
+  - Card
   layers:
   - Default
   - TransparentFX
