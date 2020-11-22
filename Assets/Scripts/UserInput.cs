@@ -58,12 +58,12 @@ public class UserInput : MonoBehaviour
 
             if (selected != null)
                 selected.transform.position = new Vector3(originPosition.x + deltaX, originPosition.y + deltaY, -0.35f);
-        
+
         }
 
         if (Input.GetMouseButtonUp(0))
         {
-            if (selected != null)
+            if (selected != null&&selected.transform.position!=originPosition)
             {
                 Debug.Log("mouse up");
                 mousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
@@ -81,7 +81,7 @@ public class UserInput : MonoBehaviour
                             {
                                 Transform siblingCard = selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1);
 
-                                siblingCard.GetComponent<CardFace>().selectable=true;
+                                siblingCard.GetComponent<CardFace>().selectable = true;
                                 CardFace[] allChildrenCard = siblingCard.GetComponentsInChildren<CardFace>();
                                 foreach (CardFace cardFace in allChildrenCard)
                                 {
@@ -149,7 +149,7 @@ public class UserInput : MonoBehaviour
                             selected.layer = 0;
                             selected = null;
                         }
-                       
+
 
                     }
                     //when card drag to free cell
@@ -191,7 +191,7 @@ public class UserInput : MonoBehaviour
                                 selected = null;
                             }
                         }
-                        
+
 
 
                     }
@@ -199,15 +199,15 @@ public class UserInput : MonoBehaviour
                 else
                 {
                     ResetCard(selected);
-                    selected = null;
+                    //selected = null;
                 }
 
                 if (selected != null)
                 {
-                    ResetCard(selected);
+                    ResetCard(selected,false);
                 }
-                
-                
+
+
             }
 
 
@@ -220,7 +220,7 @@ public class UserInput : MonoBehaviour
         {
 
 
-            if (selected == null||selected!=card)
+            if (selected == null || selected != card)
             {
 
                 selected = card;
@@ -232,8 +232,8 @@ public class UserInput : MonoBehaviour
             }
             else if (selected == card)
             {
-               
-                if (selected.transform.childCount == 0 &&!solitaire.IntoAllFoundations(selected))
+
+                if (selected.transform.childCount == 0 && !solitaire.IntoAllFoundations(selected))
                 {
                     //when the same card clicked twice
                     //put the card into fountains if possible
@@ -241,7 +241,7 @@ public class UserInput : MonoBehaviour
                     //don't move the card if it already in the free cell 
                     int freeCellIndx = solitaire.FreeCell("");
                     int freeCellIndx2 = solitaire.FreeCell(selected.name);
-                   
+
                     if (freeCellIndx != -1 && freeCellIndx2 == -1)
                     {
                         solitaire.freeCells[freeCellIndx] = selected.name;
@@ -272,7 +272,7 @@ public class UserInput : MonoBehaviour
 
         }
 
-        else if(selected!=null)
+        else if (selected != null)
         {
             CardColorWhite(selected);
             selected = null;
@@ -311,11 +311,11 @@ public class UserInput : MonoBehaviour
     }
     private void CardColorYellow(GameObject card)
     {
-            card.GetComponent<SpriteRenderer>().color = Color.yellow;
+        card.GetComponent<SpriteRenderer>().color = Color.yellow;
 
         if (card.transform.childCount > 0)
         {
-            foreach(Transform child in card.transform)
+            foreach (Transform child in card.transform)
             {
                 CardColorYellow(child.gameObject);
             }
@@ -335,9 +335,11 @@ public class UserInput : MonoBehaviour
         }
 
     }
-    private void ResetCard(GameObject card)
+    private void ResetCard(GameObject card,bool resetColor=true)
     {
+        if(resetColor)
         CardColorWhite(card);
+
         card.transform.position = originPosition;
         card.layer = 0;
         //selected = null;
