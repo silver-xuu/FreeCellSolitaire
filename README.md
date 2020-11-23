@@ -1,6 +1,9 @@
 # FreeCellSolitaire
 Free Cell Solitaire Game
 
+Started time: Nov 21 2020 6:30pm
+End time: Nov 22 2020 6:00pm
+
 This project is a solitaire game done by Unity engine. It follows the basic rule of [FreeCell](https://en.wikipedia.org/wiki/FreeCell).
 There are 52 cards dealt into 8 cascades at the bottom. On the top there is 4 free cells and foundations. 
 Players needs to move all the cards into the foundation pile.
