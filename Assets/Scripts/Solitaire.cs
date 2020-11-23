@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Solitaire : MonoBehaviour
+
+public class Solitaire : Singleton<Solitaire>
 {
+
     /* Public variables goes here */
     public Sprite[] cards;
     public GameObject cardPrefab;
@@ -33,8 +35,7 @@ public class Solitaire : MonoBehaviour
     private List<string> cascades7 = new List<string>();
     private List<string> cascades8 = new List<string>();
 
-    [SerializeField]
-    private string[] foundations;
+    public string[] foundations;
 
     // Start is called before the first frame update
     void Start()
@@ -42,13 +43,6 @@ public class Solitaire : MonoBehaviour
         cascades = new List<string>[] { cascades1, cascades2, cascades3, cascades4, cascades5, cascades6, cascades7, cascades8 };
         foundations = new string[4] { "C A", "D A", "H A", "S A" };
         PlayCards();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-
     }
 
     public void PlayCards()
@@ -159,80 +153,23 @@ public class Solitaire : MonoBehaviour
         }
         return -1;
     }
-    public bool IntoAllFoundations(GameObject card)
+    public int IntoAllFoundations(GameObject card)
     {
 
         for(int i = 0; i < 4; i++)
         {
 
                 if (IntoFoundation(card, i))
-                    return true;
+                    return i;
             
         }
 
-        return false;
+        return -1;
     }
     public bool IntoFoundation(GameObject card,int index)
     {
         if (foundations[index] == card.name)
         {
-            bool isFinshed = false;
-            // change the new last child of the column and its descendants to be selectable
-            if (card.transform.GetSiblingIndex() > 0)
-            {
-                //get the last child of the column
-                Transform siblingCard = card.transform.parent.GetChild(card.transform.GetSiblingIndex() - 1);
-
-                siblingCard.GetComponent<CardFace>().selectable = true;
-                CardFace[] cardFaces = card.GetComponentsInChildren<CardFace>();
-                foreach(CardFace cardFace in cardFaces)
-                {
-                    cardFace.selectable = true;
-                }
-                //old function for getting change the new last child of the column
-                //card.transform.parent.GetChild(card.transform.GetSiblingIndex() - 1).GetComponent<CardFace>().selectable = true;
-            }
-
-            int freeCellIndx = FreeCell(card.name);
-            if (freeCellIndx != -1)
-                freeCells[freeCellIndx] = "";
-
-            card.transform.position = foundationPos[index].position-new Vector3(0,0,0.01f);
-            card.tag = "Foundation";
-            card.transform.SetParent(foundationPos[index]);
-            foundationPos[index] = card.transform;
-            string[] names = foundations[index].Split(' ');
-            if(names[1] != "J" && names[1] != "Q" && names[1] != "K" && names[1] != "A" && names[1] != "10")
-            {
-                names[1] = (int.Parse(names[1]) + 1).ToString();
-            }
-            else if(names[1] == "A")
-            {
-                names[1] = "2";
-            }
-            else if (names[1] == "10")
-            {
-                names[1] = "J";
-            }
-            else if (names[1] == "J")
-            {
-                names[1] = "Q";
-            }
-            else if (names[1] == "Q")
-            {
-                names[1] = "K";
-            }
-            else if (names[1] == "K")
-            {
-                isFinshed = true;
-                finishCount++;
-            }
-            if (!isFinshed)
-                foundations[index] = names[0] + ' ' + names[1];
-            else
-            {
-                foundations[index] = "";
-            }
 
             return true;
         }
@@ -282,5 +219,31 @@ public class Solitaire : MonoBehaviour
             return 13;
 
         return int.Parse(name);
+    }
+    public string NextCardFace(string card)
+    {
+        string[] names = card.Split(' ');
+        if (names[1] != "J" && names[1] != "Q" && names[1] != "K" && names[1] != "A" && names[1] != "10")
+        {
+            names[1] = (int.Parse(names[1]) + 1).ToString();
+        }
+        else if (names[1] == "A")
+        {
+            names[1] = "2";
+        }
+        else if (names[1] == "10")
+        {
+            names[1] = "J";
+        }
+        else if (names[1] == "J")
+        {
+            names[1] = "Q";
+        }
+        else if (names[1] == "Q")
+        {
+            names[1] = "K";
+        }
+        return names[0] + ' ' + names[1];
+        
     }
 }

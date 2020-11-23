@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class UserInput : MonoBehaviour
 {
 
@@ -13,7 +14,8 @@ public class UserInput : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        solitaire = FindObjectOfType<Solitaire>();
+        //solitaire = FindObjectOfType<Solitaire>();
+        solitaire = Solitaire.Instance;
     }
 
     // Update is called once per frame
@@ -76,31 +78,10 @@ public class UserInput : MonoBehaviour
                         Debug.Log(hit.collider.name);
                         if (Stackable(selected, hit.collider.gameObject))
                         {
-                            // change the new last child of the column to be selectable
-                            if (selected.transform.GetSiblingIndex() > 0)
-                            {
-                                Transform siblingCard = selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1);
-
-                                siblingCard.GetComponent<CardFace>().selectable = true;
-                                CardFace[] allChildrenCard = siblingCard.GetComponentsInChildren<CardFace>();
-                                foreach (CardFace cardFace in allChildrenCard)
-                                {
-                                    cardFace.selectable = true;
-                                }
-                                //selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1).GetComponent<CardFace>().selectable = true;
-                            }
-
-
-                            //remove from the free cell if the card is in it
-                            int freeCellIndx = solitaire.FreeCell(selected.name);
-                            if (freeCellIndx != -1)
-                                solitaire.freeCells[freeCellIndx] = "";
-
-                            //move to stack
-                            selected.transform.position = hit.transform.position - new Vector3(0f, 0.43f, 0.01f);
+                            
+                            ICommand command = new StackCommand(selected,hit.collider.gameObject,originPosition);
+                            CommandInvoker.AddCommand(command);
                             CardColorWhite(selected);
-                            selected.transform.parent = hit.transform;
-                            selected.transform.position = selected.transform.position - new Vector3(0, 0, 0.01f);
                             selected.layer = 0;
                             selected = null;
 
@@ -109,11 +90,16 @@ public class UserInput : MonoBehaviour
                     //when card drag to foundation area
                     if (hit.collider.CompareTag("Foundation"))
                     {
-
-                        if (!solitaire.IntoAllFoundations(selected))
+                        int foundationIndx = solitaire.IntoAllFoundations(selected);
+                        if (foundationIndx == -1)
                         {
                             ResetCard(selected);
 
+                        }
+                        else
+                        {
+                            ICommand command = new FoundationCommand(selected, originPosition, foundationIndx);
+                            CommandInvoker.AddCommand(command);
                         }
                         CardColorWhite(selected);
                         selected = null;
@@ -124,27 +110,9 @@ public class UserInput : MonoBehaviour
                         //check if the cascade is really empty
                         if (hit.collider.transform.childCount == 0)
                         {
-                            //remove from the free cell if the card is in it
-                            int freeCellIndx = solitaire.FreeCell(selected.name);
-                            if (freeCellIndx != -1)
-                                solitaire.freeCells[freeCellIndx] = "";
-                            // change the new last child of the column and its descendants to be selectable
-                            if (selected.transform.GetSiblingIndex() > 0)
-                            {
-                                Transform siblingCard = selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1);
-
-                                siblingCard.GetComponent<CardFace>().selectable = true;
-                                CardFace[] allChildrenCard = siblingCard.GetComponentsInChildren<CardFace>();
-                                foreach (CardFace cardFace in allChildrenCard)
-                                {
-                                    cardFace.selectable = true;
-                                }
-                                //selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1).GetComponent<CardFace>().selectable = true;
-                            }
-
-                            //move to empty cascades
-                            selected.transform.position = hit.collider.transform.position - new Vector3(0, 0, 0.03f);
-                            selected.transform.SetParent(hit.collider.transform);
+                            
+                            ICommand command = new EmptyCascadeCommand(selected, hit.collider.gameObject,originPosition);
+                            CommandInvoker.AddCommand(command);
                             CardColorWhite(selected);
                             selected.layer = 0;
                             selected = null;
@@ -160,31 +128,9 @@ public class UserInput : MonoBehaviour
                             int freeCellIndx = hit.collider.transform.GetSiblingIndex();
                             if (solitaire.freeCells[freeCellIndx] == "")
                             {
-                                //remove from the free cell if the card is in it
-                                int freeCellIndx2 = solitaire.FreeCell(selected.name);
-                                if (freeCellIndx2 != -1)
-                                    solitaire.freeCells[freeCellIndx2] = "";
-
-                                solitaire.freeCells[freeCellIndx] = selected.name;
-                                // change the new last child of the column and its decesendants to be selectable
-                                if (selected.transform.GetSiblingIndex() > 0)
-                                {
-                                    Transform siblingCard = selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1);
-
-                                    siblingCard.GetComponent<CardFace>().selectable = true;
-                                    CardFace[] allChildrenCard = siblingCard.GetComponentsInChildren<CardFace>();
-                                    foreach (CardFace cardFace in allChildrenCard)
-                                    {
-                                        cardFace.selectable = true;
-                                    }
-                                    //selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1).GetComponent<CardFace>().selectable = true;
-                                }
-
-
-
-                                //move to free cell
-                                selected.transform.position = solitaire.freeCellPos[freeCellIndx].position - new Vector3(0, 0, 0.1f);
-                                selected.transform.SetParent(solitaire.freeCellPos[freeCellIndx]);
+                                ////remove from the free cell if the card is in it
+                                ICommand command = new FreeCellCommand(freeCellIndx, selected,originPosition);
+                                CommandInvoker.AddCommand(command);
 
                                 CardColorWhite(selected);
                                 selected.layer = 0;
@@ -232,36 +178,25 @@ public class UserInput : MonoBehaviour
             }
             else if (selected == card)
             {
-
-                if (selected.transform.childCount == 0 && !solitaire.IntoAllFoundations(selected))
+                int foundationIndx = solitaire.IntoAllFoundations(selected);
+                if (selected.transform.childCount == 0 && foundationIndx == -1)
                 {
                     //when the same card clicked twice
                     //put the card into fountains if possible
                     //otherwise put the card into available free cell
                     //don't move the card if it already in the free cell 
                     int freeCellIndx = solitaire.FreeCell("");
-                    int freeCellIndx2 = solitaire.FreeCell(selected.name);
 
-                    if (freeCellIndx != -1 && freeCellIndx2 == -1)
+                    if (freeCellIndx != -1)
                     {
-                        solitaire.freeCells[freeCellIndx] = selected.name;
-                        // change the new last child and its descendants of the column to be selectable
-                        if (selected.transform.GetSiblingIndex() > 0)
-                        {
-                            Transform siblingCard = selected.transform.parent.GetChild(selected.transform.GetSiblingIndex() - 1);
-
-                            siblingCard.GetComponent<CardFace>().selectable = true;
-
-                            CardFace[] allChildrenCard = siblingCard.GetComponentsInChildren<CardFace>();
-                            foreach (CardFace cardFace in allChildrenCard)
-                            {
-                                cardFace.selectable = true;
-                            }
-                        }
-
-                        selected.transform.position = solitaire.freeCellPos[freeCellIndx].position - new Vector3(0, 0, 0.1f);
-                        selected.transform.SetParent(solitaire.freeCellPos[freeCellIndx]);
+                        ICommand command = new FreeCellCommand(freeCellIndx, selected, originPosition);
+                        CommandInvoker.AddCommand(command);
                     }
+                    
+                }else if (foundationIndx != -1)
+                {
+                    ICommand command = new FoundationCommand(selected, originPosition, foundationIndx);
+                    CommandInvoker.AddCommand(command);
                 }
 
                 selected.layer = 0;
@@ -344,4 +279,25 @@ public class UserInput : MonoBehaviour
         card.layer = 0;
         //selected = null;
     }
+
+    public static Transform GetSiblingCard(Transform selectedCard)
+    {
+        if (selectedCard.GetSiblingIndex() > 0)
+        {
+            Transform sibling = selectedCard.transform.parent.GetChild(selectedCard.transform.GetSiblingIndex() - 1);
+
+
+            sibling.GetComponent<CardFace>().selectable = true;
+
+            CardFace[] allChildrenCard = sibling.GetComponentsInChildren<CardFace>();
+            foreach (CardFace cardFace in allChildrenCard)
+            {
+                cardFace.selectable = true;
+            }
+            return sibling;
+        }
+        return null;
+    }
+
 }
+
