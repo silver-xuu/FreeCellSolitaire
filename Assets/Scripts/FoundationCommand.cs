@@ -9,6 +9,7 @@ public class FoundationCommand : ICommand
     Vector3 oldPosition;
     Transform oldParent;
     string oldFoundationFace,newFoundationFace;
+    static float buffer=0.01f;
 
     int freeCellIndx = -1,foundationIndx;
     public FoundationCommand(GameObject selected, Vector3 oldPosition,int foundationIndx)
@@ -29,8 +30,13 @@ public class FoundationCommand : ICommand
         selectedCard.tag = "Foundation";
 
         solitaire.foundations[foundationIndx] = newFoundationFace;
-        selectedCard.transform.position=solitaire.foundationPos[foundationIndx].position - new Vector3(0, 0, 0.01f);
+        if (newFoundationFace.Split(' ')[1] == "K")
+            Solitaire.finishCount++;
+        Debug.Log(Solitaire.finishCount);
+        selectedCard.transform.position=solitaire.foundationPos[foundationIndx].position - new Vector3(0, 0, buffer);
         selectedCard.transform.SetParent(solitaire.foundationPos[foundationIndx]);
+        buffer += 0.01f;
+        
     }
 
     public void UndoAction()

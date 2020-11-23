@@ -10,6 +10,7 @@ public class Solitaire : Singleton<Solitaire>
     public Sprite[] cards;
     public GameObject cardPrefab;
 
+
     public Transform[] cascadesPos;
     public Transform[] freeCellPos;
     public Transform[] foundationPos;
@@ -51,6 +52,16 @@ public class Solitaire : Singleton<Solitaire>
         ShuffleDeck(deck);
         SolitaireSort();
         SolitaireDeal();
+        
+    }
+    private void Update()
+    {
+        //switch to finish scene when win
+        if (finishCount >= 4)
+        {
+            endScene(1);
+            TimeManager.Instance.SaveTimeStampToJson();
+        }
         
     }
 
@@ -245,5 +256,10 @@ public class Solitaire : Singleton<Solitaire>
         }
         return names[0] + ' ' + names[1];
         
+    }
+    public void endScene(int isFinished)
+    {
+        GameSceneManager.SwitchScene(2);
+        PlayerPrefs.SetInt("isFinished", isFinished);
     }
 }

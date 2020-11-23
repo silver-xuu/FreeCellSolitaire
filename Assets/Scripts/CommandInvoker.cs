@@ -11,7 +11,7 @@ public class CommandInvoker : MonoBehaviour
 
     static int counter;
 
-    public Text logText;
+    public Text logText,stepCountText;
     private void Awake()
     {
         commandBuffer = new Queue<ICommand>();
@@ -41,6 +41,7 @@ public class CommandInvoker : MonoBehaviour
             commandHistory.Add(command);
             counter++;
             logText.text = "Log:\t" + command.ToString();
+            stepCountText.text = "Step Count: " + counter.ToString();
         }
         
     }
@@ -52,6 +53,7 @@ public class CommandInvoker : MonoBehaviour
             ICommand c = commandHistory[counter];
             c.UndoAction();
             logText.text = "Log:\tUndo " + c.ToString();
+            stepCountText.text = "Step Count: " + counter.ToString();
         }
     }
     public void RedoCommand()
@@ -62,6 +64,7 @@ public class CommandInvoker : MonoBehaviour
             c.Execute();
             counter++;
             logText.text = "Log:\tRedo " + c.ToString();
+            stepCountText.text = "Step Count: " + counter.ToString();
         }
     }
 }
